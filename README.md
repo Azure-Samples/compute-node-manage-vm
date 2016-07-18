@@ -1,7 +1,7 @@
 ---
 services: virtual-machines
 platforms: nodejs
-author: eduardk
+author: eduardkoller
 ---
 
 # Azure Virtual Machines Management Samples - Node.js
