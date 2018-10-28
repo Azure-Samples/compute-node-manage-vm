@@ -106,7 +106,7 @@ deleteResourceGroup(function (err, result))
 
 Please refer to [Azure SDK for Node](https://github.com/Azure/azure-sdk-for-node) for more information. Additionally, here some other helpful links:
 
-- [Azure Node.js Development Center] (https://azure.microsoft.com/en-us/develop/nodejs/)
+- [Azure Node.js Development Center](https://azure.microsoft.com/en-us/develop/nodejs/)
 - [Azure Virtual Machines documentation](https://azure.microsoft.com/services/virtual-machines/)
 - [Learning Path for Virtual Machines](https://azure.microsoft.com/documentation/learning-paths/virtual-machines/)
 
