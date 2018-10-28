@@ -71,13 +71,17 @@ This sample demonstrates how to manage your Azure virtual machines using a node.
 The sample creates, lists, restarts and deletes virtual machines. It starts by logging in using your service principal.
 
 ```javascript
-msRestAzure.loginWithServicePrincipalSecret(clientId, secret, domain, function (err, credentials))
+msRestAzure.loginWithServicePrincipalSecret(clientId, secret, domain, function (err, credentials) {
+    // TODO: Handle result
+});
 ```
 
 The sample then creates a virtual machine and displays information about it.
 
 ```javascript
-createVM(function (err, result));
+createVM(function (err, result) {
+    // TODO: Handle result
+});
 
 computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, result))
 ```
@@ -85,21 +89,33 @@ computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, resu
 Next, the sample stops and then starts the virtual machine created.
 
 ```javascript
-computeClient.virtualMachines.powerOff(resourceGroupName, vmName, function (err, result))
-computeClient.virtualMachines.start(resourceGroupName, vmName, function (err, result))
+computeClient.virtualMachines.powerOff(resourceGroupName, vmName, function (err, result) {
+    // TODO: Handle result
+});
+
+computeClient.virtualMachines.start(resourceGroupName, vmName, function (err, result) {
+    // TODO: Handle result
+});
 ```
 
 And then lists all virtual machines under the current subscription.
 
 ```javascript
-computeClient.virtualMachines.listAll(function (err, result))
+computeClient.virtualMachines.listAll(function (err, result) {
+    // TODO: Handle result
+});
 ```
 
 Finally, the code in the file 'cleanup.js' deletes the virtual machine created, as well as the resource group.
 
 ```javascript
-deleteVirtualMachine(function (err, result))
-deleteResourceGroup(function (err, result))
+deleteVirtualMachine(function (err, result) {
+    // TODO: Handle result
+});
+
+deleteResourceGroup(function (err, result) {
+    // TODO: Handle result
+});
 ```
 
 ## More information
