@@ -83,7 +83,9 @@ createVM(function (err, result) {
     // TODO: Handle result
 });
 
-computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, result))
+computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, result) {
+    // TODO: Handle result
+});
 ```
 
 Next, the sample stops and then starts the virtual machine created.
