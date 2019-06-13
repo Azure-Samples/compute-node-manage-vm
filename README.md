@@ -45,7 +45,7 @@ This sample demonstrates how to manage your Azure virtual machines using a node.
 1. Set the following environment variables using the information from the service principle that you created.
 
     ```
-    export AZURE_SUBSCRIPION_ID={your subscription id}
+    export AZURE_SUBSCRIPTION_ID={your subscription id}
     export CLIENT_ID={your client id}
     export APPLICATION_SECRET={your client secret}
     export DOMAIN={your tenant id as a guid OR the domain name of your org <contosocorp.com>}
