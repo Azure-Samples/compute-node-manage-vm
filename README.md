@@ -1,7 +1,11 @@
 ---
-services: virtual-machines
-platforms: nodejs
-author: eduardkoller
+page_type: sample
+languages:
+- javascript
+products:
+- azure
+description: "This sample demonstrates how to manage your Azure virtual machines using a node.js client and specifically how to:"
+urlFragment: compute-node-manage-vm
 ---
 
 # Azure Virtual Machines Management Samples - Node.js
