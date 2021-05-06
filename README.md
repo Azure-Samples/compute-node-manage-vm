@@ -4,13 +4,13 @@ languages:
 - javascript
 products:
 - azure
-description: "This sample demonstrates how to manage your Azure virtual machines using a node.js client and specifically how to:"
+description: "This sample demonstrates how to manage your Azure virtual machines using a Node.js client and specifically how to:"
 urlFragment: compute-node-manage-vm
 ---
 
 # Azure Virtual Machines Management Samples - Node.js
 
-This sample demonstrates how to manage your Azure virtual machines using a node.js client and specifically how to:
+This sample demonstrates how to manage your Azure virtual machines using a Node.js client and specifically how to:
 
 - Create a virtual machine
 - Start a virtual machine
@@ -26,7 +26,7 @@ This sample demonstrates how to manage your Azure virtual machines using a node.
 <a id="run"></a>
 ## Run this sample
 
-1. If you don't already have it, [get node.js](https://nodejs.org).
+1. If you don't already have it, [get Node.js](https://nodejs.org).
 
 1. Clone the repository.
 
