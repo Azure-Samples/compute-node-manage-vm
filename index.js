@@ -295,7 +295,7 @@ function createVirtualMachine(nicId, vmImageVersionNumber, callback) {
       adminPassword: adminPassword
     },
     hardwareProfile: {
-      vmSize: 'Basic_A0'
+      vmSize: 'Standard_B1ls'
     },
     storageProfile: {
       imageReference: {
