@@ -1,18 +1,27 @@
 ---
-services: virtual-machines
-platforms: nodejs
-author: eduardkoller
+page_type: sample
+languages:
+- javascript
+products:
+- azure
+- azure-nodejs
+- azure-resource-manager
+- azure-storage
+- azure-virtual-network
+- azure-virtual-machines
+description: "This sample demonstrates how to manage your Azure virtual machines using a Node.js client and specifically how to: create a virtual machine, start a virtual machine, stop a virtual machine, list virtual machines, delete a virtual machine"
+urlFragment: compute-node-manage-vm
 ---
 
 # Azure Virtual Machines Management Samples - Node.js
 
-This sample demonstrates how to manage your Azure virtual machines using a node.js client and specifically how to:
+This sample demonstrates how to manage your Azure virtual machines using a Node.js client and specifically how to:
 
 - Create a virtual machine
 - Start a virtual machine
 - Stop a virtual machine
 - List virtual machines
-- Delete a virtual machine.
+- Delete a virtual machine
 
 **On this page**
 
@@ -22,7 +31,7 @@ This sample demonstrates how to manage your Azure virtual machines using a node.
 <a id="run"></a>
 ## Run this sample
 
-1. If you don't already have it, [get node.js](https://nodejs.org).
+1. If you don't already have it, [get Node.js](https://nodejs.org).
 
 1. Clone the repository.
 
@@ -38,16 +47,23 @@ This sample demonstrates how to manage your Azure virtual machines using a node.
     ```
 
 1. Create an Azure service principal either through
-    [Azure CLI](https://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal-cli/),
-    [PowerShell](https://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal/)
-    or [the portal](https://azure.microsoft.com/documentation/articles/resource-group-create-service-principal-portal/).
+    [Azure CLI](https://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal-cli/):
+
+    ```azurecli
+    az ad sp create-for-rbac --name YOUR-SERVICE-PRINCIPAL-NAME
+    ```
+
+    Other ways to create a service principal:
+    * [Azure portal](https://azure.microsoft.com/documentation/articles/resource-group-create-service-principal-portal/)
+    * [PowerShell](https://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal/)
+
 
 1. Set the following environment variables using the information from the service principle that you created.
 
     ```
     export AZURE_SUBSCRIPION_ID={your subscription id}
-    export CLIENT_ID={your client id}
-    export APPLICATION_SECRET={your client secret}
+    export CLIENT_ID={your client/app id}
+    export APPLICATION_SECRET={your client secret/password}
     export DOMAIN={your tenant id as a guid OR the domain name of your org <contosocorp.com>}
     ```
 
@@ -124,7 +140,7 @@ deleteResourceGroup(function (err, result) {
 
 Please refer to [Azure SDK for Node](https://github.com/Azure/azure-sdk-for-node) for more information. Additionally, here some other helpful links:
 
-- [Azure Node.js Development Center](https://azure.microsoft.com/en-us/develop/nodejs/)
+- [Azure JavaScript Development Center](https://docs.microsoft.com/en-us/azure/developer/javascript/)
 - [Azure Virtual Machines documentation](https://azure.microsoft.com/services/virtual-machines/)
 - [Learning Path for Virtual Machines](https://azure.microsoft.com/documentation/learning-paths/virtual-machines/)
 
