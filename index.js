@@ -1,236 +1,126 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
- */
-'use strict';
+const util = require('util');
+const { DefaultAzureCredential } = require("@azure/identity");
+const { ComputeManagementClient } = require("@azure/arm-compute");
+const { ResourceManagementClient } = require("@azure/arm-resources");
+const { StorageManagementClient } = require("@azure/arm-storage");
+const { NetworkManagementClient } = require("@azure/arm-network");
 
-var util = require('util');
-var async = require('async');
-var msRestAzure = require('ms-rest-azure');
-var ComputeManagementClient = require('azure-arm-compute');
-var StorageManagementClient = require('azure-arm-storage');
-var NetworkManagementClient = require('azure-arm-network');
-var ResourceManagementClient = require('azure-arm-resource').ResourceManagementClient;
+// Store function output to be used elsewhere
+let randomIds = {};
+let subnetInfo=null;
+let publicIPInfo=null;
+let vmImageInfo=null;
+let nicInfo=null;
 
-_validateEnvironmentVariables();
-var clientId = process.env['CLIENT_ID'];
-var domain = process.env['DOMAIN'];
-var secret = process.env['APPLICATION_SECRET'];
-var subscriptionId = process.env['AZURE_SUBSCRIPTION_ID'];
-var resourceClient, computeClient, storageClient, networkClient;
-//Sample Config
-var randomIds = {};
-var location = 'westus';
-var accType = 'Standard_LRS';
-var resourceGroupName = _generateRandomId('testrg', randomIds);
-var vmName = _generateRandomId('testvm', randomIds);
-var storageAccountName = _generateRandomId('testac', randomIds);
-var vnetName = _generateRandomId('testvnet', randomIds);
-var subnetName = _generateRandomId('testsubnet', randomIds);
-var publicIPName = _generateRandomId('testpip', randomIds);
-var networkInterfaceName = _generateRandomId('testnic', randomIds);
-var ipConfigName = _generateRandomId('testcrpip', randomIds);
-var domainNameLabel = _generateRandomId('testdomainname', randomIds);
-var osDiskName = _generateRandomId('testosdisk', randomIds);
+//Random number generator for service names and settings
+const resourceGroupName = _generateRandomId("diberry-testrg", randomIds);
+const vmName = _generateRandomId("testvm", randomIds);
+const storageAccountName = _generateRandomId("testac", randomIds);
+const vnetName = _generateRandomId("testvnet", randomIds);
+const subnetName = _generateRandomId("testsubnet", randomIds);
+const publicIPName = _generateRandomId("testpip", randomIds);
+const networkInterfaceName = _generateRandomId("testnic", randomIds);
+const ipConfigName = _generateRandomId("testcrpip", randomIds);
+const domainNameLabel = _generateRandomId("testdomainname", randomIds);
+const osDiskName = _generateRandomId("testosdisk", randomIds);
 
-// Ubuntu config
-var publisher = 'Canonical';
-var offer = 'UbuntuServer';
-var sku = '14.04.3-LTS';
-var osType = 'Linux';
+// Resource configs 
+const location = "eastus";
+const accType = "Standard_LRS";
 
-// Windows config
-//var publisher = 'microsoftwindowsserver';
-//var offer = 'windowsserver';
-//var sku = '2012-r2-datacenter';
-//var osType = 'Windows';
+// Ubuntu config for VM
+const publisher = "Canonical";
+const offer = "UbuntuServer";
+const sku = "14.04.3-LTS";
+const adminUsername = "notadmin";
+const adminPassword = "Pa$$w0rd92";
 
-var adminUsername = 'notadmin';
-var adminPassword = 'Pa$$w0rd92';
+// Azure platform authentication
+const clientId = process.env["AZURE_CLIENT_ID"];
+const domain = process.env["AZURE_TENANT_ID"];
+const secret = process.env["AZURE_CLIENT_SECRET"];
+const subscriptionId = process.env["AZURE_SUBSCRIPTION_ID"];
+
+if (!clientId || !domain || !secret || !subscriptionId) {
+  console.log("Default credentials couldn't be found");
+}
+const credentials = new DefaultAzureCredential();
+
+// Azure services
+const resourceClient = new ResourceManagementClient(credentials, subscriptionId);
+const computeClient = new ComputeManagementClient(credentials, subscriptionId);
+const storageClient = new StorageManagementClient(credentials, subscriptionId);
+const networkClient = new NetworkManagementClient(credentials, subscriptionId);
+
+// Create resources then manage them (on/off)
+const main = async () => {
+  try {
+    await createResources();
+    await manageResources();
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 
-///////////////////////////////////////////
-//     Entrypoint for sample script      //
-///////////////////////////////////////////
-
-msRestAzure.loginWithServicePrincipalSecret(clientId, secret, domain, function (err, credentials, subscriptions) {
-  if (err) return console.log(err);
-  resourceClient = new ResourceManagementClient(credentials, subscriptionId);
-  computeClient = new ComputeManagementClient(credentials, subscriptionId);
-  storageClient = new StorageManagementClient(credentials, subscriptionId);
-  networkClient = new NetworkManagementClient(credentials, subscriptionId);
-  
-  async.series([
-    function (callback) {
-      ///////////////////////////////////////////////////////////////////////////////////
-      //Task1: Create VM. This is a fairly complex task. Hence we have a wrapper method//
-      //named createVM() that encapsulates the steps to create a VM. Other tasks are   //
-      //fairly simple in comparison. Hence we don't have a wrapper method for them.    //
-      ///////////////////////////////////////////////////////////////////////////////////
-      console.log('\n>>>>>>>Start of Task1: Create a VM named: ' + vmName);
-      createVM(function (err, result) {
-        if (err) {
-          console.log(util.format('\n???????Error in Task1: while creating a VM:\n%s', 
-            util.inspect(err, { depth: null })));
-          callback(err);
-        } else {
-          console.log(util.format('\n######End of Task1: Create a VM is succesful.\n%s', 
-            util.inspect(result, { depth: null })));
-          callback(null, result);
-        }
-      });
-    },
-    function (callback) {
-      /////////////////////////////////////////////////////////
-      //Task2: Get Information about the vm created in Task1.//
-      /////////////////////////////////////////////////////////
-      console.log('\n>>>>>>>Start of Task2: Get VM Info about VM: ' + vmName);
-      computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, result) {
-        if (err) {
-          console.log(util.format('\n???????Error in Task2: while getting the VM Info:\n%s', 
-            util.inspect(err, { depth: null })));
-          callback(err);
-        } else {
-          console.log(util.format('\n######End of Task2: Get VM Info is successful.\n%s', 
-            util.inspect(result, { depth: null })));
-          callback(null, result);
-        }
-      });
-    },
-    function (callback) {
-      ///////////////////////////
-      //Task3: Poweroff the VM.//
-      ///////////////////////////
-      console.log('\n>>>>>>>Start of Task3: Poweroff the VM: ' + vmName);
-      computeClient.virtualMachines.powerOff(resourceGroupName, vmName, function (err, result) {
-        if (err) {
-          console.log(util.format('\n???????Error in Task3: while powering off the VM:\n%s', 
-            util.inspect(err, { depth: null })));
-          callback(err);
-        } else {
-          console.log(util.format('\n######End of Task3: Poweroff the VM is successful.\n%s', 
-            util.inspect(result, { depth: null })));
-          callback(null, result);
-        }
-      });
-    },
-    function (callback) {
-      ////////////////////////
-      //Task4: Start the VM.//
-      ////////////////////////
-      console.log('\n>>>>>>>Start of Task4: Start the VM: ' + vmName);
-      computeClient.virtualMachines.start(resourceGroupName, vmName, function (err, result) {
-        if (err) {
-          console.log(util.format('\n???????Error in Task4: while starting the VM:\n%s', 
-            util.inspect(err, { depth: null })));
-          callback(err);
-        } else {
-          console.log(util.format('\n######End of Task4: Start the VM is successful.\n%s', 
-            util.inspect(result, { depth: null })));
-          callback(null, result);
-        }
-      });
-    },
-    function (callback) {
-      //////////////////////////////////////////////////////
-      //Task5: Lisitng All the VMs under the subscription.//
-      //////////////////////////////////////////////////////
-      console.log('\n>>>>>>>Start of Task5: List all vms under the current subscription.');
-      computeClient.virtualMachines.listAll(function (err, result) {
-        if (err) {
-          console.log(util.format('\n???????Error in Task5: while listing all the vms under ' + 
-            'the current subscription:\n%s', util.inspect(err, { depth: null })));
-          callback(err);
-        } else {
-          console.log(util.format('\n######End of Task5: List all the vms under the current ' + 
-            'subscription is successful.\n%s', util.inspect(result, { depth: null })));
-          callback(null, result);
-        }
-      });
-    }
-  ],
-  //final callback to be run after all the tasks
-  function (err, results) {
-    if (err) {
-      console.log(util.format('\n??????Error occurred in one of the operations.\n%s', 
-        util.inspect(err, { depth: null })));
-    } else {
-      console.log(util.format('\n######All the operations have completed successfully. ' + 
-        'The final set of results are as follows:\n%s', util.inspect(results, { depth: null })));
-      console.log(util.format('\n\n-->Please execute the following script for cleanup:\nnode cleanup.js %s %s', resourceGroupName, vmName));
-    }
+const createResources = async () => {
+  try {
+    result = await createResourceGroup();
+    accountInfo = await createStorageAccount();
+    vnetInfo = await createVnet();
+    subnetInfo = await getSubnetInfo();
+    publicIPInfo = await createPublicIP();
+    nicInfo = await createNIC(
+      subnetInfo,
+      publicIPInfo
+    );
+    vmImageInfo = await findVMImage();
+    nicResult = await getNICInfo();
+    vmInfo = await createVirtualMachine(
+      nicInfo.id,
+      vmImageInfo[0].name
+    );
     return;
-  });
-});
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-// Helper functions
-function createVM(finalCallback) {
-  //We could have had an async.series over here as well. However, we chose to nest
-  //the callbacks to showacase a different pattern in the sample.
-  createResourceGroup(function (err, result) {
-    if (err) return finalCallback(err);
-    createStorageAccount(function (err, accountInfo) {
-      if (err) return finalCallback(err);
-      createVnet(function (err, vnetInfo) {
-        if (err) return finalCallback(err);
-        console.log('\nCreated vnet:\n' + util.inspect(vnetInfo, { depth: null }));
-        getSubnetInfo(function (err, subnetInfo) {
-          if (err) return finalCallback(err);
-          console.log('\nFound subnet:\n' + util.inspect(subnetInfo, { depth: null }));
-          createPublicIP(function (err, publicIPInfo) {
-            if (err) return finalCallback(err);
-            console.log('\nCreated public IP:\n' + util.inspect(publicIPInfo, { depth: null }));
-            createNIC(subnetInfo, publicIPInfo, function (err, nicInfo) {
-              if (err) return finalCallback(err);
-              console.log('\nCreated Network Interface:\n' + util.inspect(nicInfo, { depth: null }));
-              findVMImage(function (err, vmImageInfo) {
-                if (err) return finalCallback(err);
-                console.log('\nFound Vm Image:\n' + util.inspect(vmImageInfo, { depth: null }));
-                getNICInfo(function (err, nicResult) {
-                  if (err) {
-                    console.log('Could not get the created NIC: ' + networkInterfaceName + util.inspect(err, {depth: null}));
-                  } else {
-                    console.log('Found the created NIC: \n' + util.inspect(nicResult, { depth: null }));
-                  }
-                  createVirtualMachine(nicInfo.id, vmImageInfo[0].name, function (err, vmInfo) {
-                    if (err) return finalCallback(err);
-                    return finalCallback(null, vmInfo);
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-}
 
-function createResourceGroup(callback) {
-  var groupParameters = { location: location, tags: { sampletag: 'sampleValue' } };
-  console.log('\n1.Creating resource group: ' + resourceGroupName);
-  return resourceClient.resourceGroups.createOrUpdate(resourceGroupName, groupParameters, callback);
-}
 
-function createStorageAccount(callback) {
-  console.log('\n2.Creating storage account: ' + storageAccountName);
-  var createParameters = {
+const createResourceGroup = async () => {
+  const groupParameters = {
+    location: location,
+    tags: { sampletag: "sampleValue" },
+  };
+  console.log("\n1.Creating resource group: " + resourceGroupName);
+  return await resourceClient.resourceGroups.createOrUpdate(
+    resourceGroupName,
+    groupParameters
+  );
+};
+
+const createStorageAccount = async () => {
+  console.log("\n2.Creating storage account: " + storageAccountName);
+  const createParameters = {
     location: location,
     sku: {
       name: accType,
     },
-    kind: 'Storage',
+    kind: "Storage",
     tags: {
-      tag1: 'val1',
-      tag2: 'val2'
-    }
+      tag1: "val1",
+      tag2: "val2",
+    },
   };
-  return storageClient.storageAccounts.create(resourceGroupName, storageAccountName, createParameters, callback);
-}
-
-function createVnet(callback) {
-  var vnetParameters = {
+  return await storageClient.storageAccounts.create(
+    resourceGroupName,
+    storageAccountName,
+    createParameters
+  );
+};
+const createVnet = async() =>{
+  const vnetParameters = {
     location: location,
     addressSpace: {
       addressPrefixes: ['10.0.0.0/16']
@@ -241,16 +131,15 @@ function createVnet(callback) {
     subnets: [{ name: subnetName, addressPrefix: '10.0.0.0/24' }],
   };
   console.log('\n3.Creating vnet: ' + vnetName);
-  return networkClient.virtualNetworks.createOrUpdate(resourceGroupName, vnetName, vnetParameters, callback);
+  return await networkClient.virtualNetworks.createOrUpdate(resourceGroupName, vnetName, vnetParameters);
 }
 
-function getSubnetInfo(callback) {
+const getSubnetInfo = async () => {
   console.log('\nGetting subnet info for: ' + subnetName);
-  return networkClient.subnets.get(resourceGroupName, vnetName, subnetName, callback);
+  return await networkClient.subnets.get(resourceGroupName, vnetName, subnetName);
 }
-
-function createPublicIP(callback) {
-  var publicIPParameters = {
+const createPublicIP = async () => {
+  const publicIPParameters = {
     location: location,
     publicIPAllocationMethod: 'Dynamic',
     dnsSettings: {
@@ -258,11 +147,11 @@ function createPublicIP(callback) {
     }
   };
   console.log('\n4.Creating public IP: ' + publicIPName);
-  return networkClient.publicIPAddresses.createOrUpdate(resourceGroupName, publicIPName, publicIPParameters, callback);
+  return await networkClient.publicIPAddresses.createOrUpdate(resourceGroupName, publicIPName, publicIPParameters);
 }
 
-function createNIC(subnetInfo, publicIPInfo, callback) {
-  var nicParameters = {
+const createNIC = async (subnetInfo, publicIPInfo)=> {
+  const nicParameters = {
     location: location,
     ipConfigurations: [
       {
@@ -274,20 +163,19 @@ function createNIC(subnetInfo, publicIPInfo, callback) {
     ]
   };
   console.log('\n5.Creating Network Interface: ' + networkInterfaceName);
-  return networkClient.networkInterfaces.createOrUpdate(resourceGroupName, networkInterfaceName, nicParameters, callback);
+  return await networkClient.networkInterfaces.createOrUpdate(resourceGroupName, networkInterfaceName, nicParameters);
 }
-
-function findVMImage(callback) {
+const findVMImage = async () => {
   console.log(util.format('\nFinding a VM Image for location %s from ' + 
                     'publisher %s with offer %s and sku %s', location, publisher, offer, sku));
-  return computeClient.virtualMachineImages.list(location, publisher, offer, sku, { top: 1 }, callback);
+  return await computeClient.virtualMachineImages.list(location, publisher, offer, sku, { top: 1 });
+}
+const getNICInfo = async()=> {
+  return await networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName);
 }
 
-function getNICInfo(callback) {
-  return networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, callback);
-}
-function createVirtualMachine(nicId, vmImageVersionNumber, callback) {
-  var vmParameters = {
+const createVirtualMachine = async(nicId, vmImageVersionNumber)=> {
+  const vmParameters = {
     location: location,
     osProfile: {
       computerName: vmName,
@@ -320,29 +208,59 @@ function createVirtualMachine(nicId, vmImageVersionNumber, callback) {
       ]
     }
   };
-  console.log('\n6.Creating Virtual Machine: ' + vmName);
-  console.log('\n VM create parameters: ' + util.inspect(vmParameters, { depth: null }));
-  computeClient.virtualMachines.createOrUpdate(resourceGroupName, vmName, vmParameters, callback);
+  console.log('6.Creating Virtual Machine: ' + vmName);
+  console.log(' VM create parameters: ' + util.inspect(vmParameters, { depth: null }));
+  await computeClient.virtualMachines.createOrUpdate(resourceGroupName, vmName, vmParameters);
 }
-
-function _validateEnvironmentVariables() {
-  var envs = [];
-  if (!process.env['CLIENT_ID']) envs.push('CLIENT_ID');
-  if (!process.env['DOMAIN']) envs.push('DOMAIN');
-  if (!process.env['APPLICATION_SECRET']) envs.push('APPLICATION_SECRET');
-  if (!process.env['AZURE_SUBSCRIPTION_ID']) envs.push('AZURE_SUBSCRIPTION_ID');
-  if (envs.length > 0) {
-    throw new Error(util.format('please set/export the following environment variables: %s', envs.toString()));
-  }
+const manageResources = async ()=>{  
+  
+  await getVirtualMachines();
+  await turnOffVirtualMachines(
+    resourceGroupName,
+    vmName,
+    computeClient
+  );
+  await startVirtualMachines(
+    resourceGroupName,
+    vmName
+  );
+  const resultListVirtualMachines = await listVirtualMachines();
+  console.log(util.format('List all the vms under the current ' + 
+            'subscription \n%s', util.inspect(resultListVirtualMachines, { depth: null })));
 }
+const getVirtualMachines = async() => {
+  console.log(`Get VM Info about ${vmName}`)
+  return await computeClient.virtualMachines.get(resourceGroupName, vmName);
+};
+const turnOffVirtualMachines = async() => {
+  console.log(`Poweroff the VM ${vmName}`)
+  return await computeClient.virtualMachines.powerOff(resourceGroupName, vmName);
+};
+const startVirtualMachines = async() => {
+  console.log(`Start the VM ${vmName}`)  
+  return await computeClient.virtualMachines.start(resourceGroupName, vmName);
+};
+const listVirtualMachines = async() => {
+  console.log(`Lists VMs`)   
+  return await computeClient.virtualMachines.listAll();
+};
 
-function _generateRandomId(prefix, exsitIds) {
+function _generateRandomId(prefix, existIds) {
   var newNumber;
   while (true) {
     newNumber = prefix + Math.floor(Math.random() * 10000);
-    if (!exsitIds || !(newNumber in exsitIds)) {
+    if (!existIds || !(newNumber in existIds)) {
       break;
     }
   }
   return newNumber;
 }
+
+main()
+  .then(() => {
+    console.log("success " + resourceGroupName);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+  

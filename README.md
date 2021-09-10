@@ -62,9 +62,9 @@ This sample demonstrates how to manage your Azure virtual machines using a Node.
 
     ```
     export AZURE_SUBSCRIPION_ID={your subscription id}
-    export CLIENT_ID={your client/app id}
-    export APPLICATION_SECRET={your client secret/password}
-    export DOMAIN={your tenant id as a guid OR the domain name of your org <contosocorp.com>}
+    export AZURE_CLIENT_ID={your client/app id}
+    export AZURE_CLIENT_SECRET={your client secret/password}
+    export AZURE_TENANT_ID={your tenant id as a guid OR the domain name of your org <contosocorp.com>}
     ```
 
     > [AZURE.NOTE] On Windows, use `set` instead of `export`.
@@ -75,10 +75,12 @@ This sample demonstrates how to manage your Azure virtual machines using a Node.
     node index.js
     ```
 
-1. To clean up after index.js, run the cleanup script.
+    When this script is complete, it returns `success YOUR-RESOURCE-GRUOP-NAME`.
+
+1. To clean up after index.js, run the cleanup script, using the resource group name from the previous script's success statement.
 
     ```
-    node cleanup.js <resourceGroupName> <websiteName>
+    node cleanup.js YOUR-RESOURCE-GRUOP-NAME
     ```
 
 <a id="sample"></a>
@@ -86,55 +88,6 @@ This sample demonstrates how to manage your Azure virtual machines using a Node.
 
 The sample creates, lists, restarts and deletes virtual machines. It starts by logging in using your service principal.
 
-```javascript
-msRestAzure.loginWithServicePrincipalSecret(clientId, secret, domain, function (err, credentials) {
-    // TODO: Handle result
-});
-```
-
-The sample then creates a virtual machine and displays information about it.
-
-```javascript
-createVM(function (err, result) {
-    // TODO: Handle result
-});
-
-computeClient.virtualMachines.get(resourceGroupName, vmName, function (err, result) {
-    // TODO: Handle result
-});
-```
-
-Next, the sample stops and then starts the virtual machine created.
-
-```javascript
-computeClient.virtualMachines.powerOff(resourceGroupName, vmName, function (err, result) {
-    // TODO: Handle result
-});
-
-computeClient.virtualMachines.start(resourceGroupName, vmName, function (err, result) {
-    // TODO: Handle result
-});
-```
-
-And then lists all virtual machines under the current subscription.
-
-```javascript
-computeClient.virtualMachines.listAll(function (err, result) {
-    // TODO: Handle result
-});
-```
-
-Finally, the code in the file 'cleanup.js' deletes the virtual machine created, as well as the resource group.
-
-```javascript
-deleteVirtualMachine(function (err, result) {
-    // TODO: Handle result
-});
-
-deleteResourceGroup(function (err, result) {
-    // TODO: Handle result
-});
-```
 
 ## More information
 
@@ -146,6 +99,3 @@ Please refer to [Azure SDK for Node](https://github.com/Azure/azure-sdk-for-node
 
 If you don't have a Microsoft Azure subscription you can get a FREE trial account [here](http://go.microsoft.com/fwlink/?LinkId=330212).
 
----
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
