@@ -75,12 +75,12 @@ This sample demonstrates how to manage your Azure virtual machines using a Node.
     node index.js
     ```
 
-    When this script is complete, it returns `success YOUR-RESOURCE-GRUOP-NAME`.
+    When this script is complete, it returns `success YOUR-RESOURCE-GROUP-NAME`.
 
 1. To clean up after index.js, run the cleanup script, using the resource group name from the previous script's success statement.
 
     ```
-    node cleanup.js YOUR-RESOURCE-GRUOP-NAME
+    node cleanup.js YOUR-RESOURCE-GROUP-NAME
     ```
 
 <a id="sample"></a>
