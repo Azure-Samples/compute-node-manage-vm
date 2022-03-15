@@ -14,10 +14,10 @@
   "main": "./index.js",
   "license": "MIT",
   "dependencies": {
-    "@azure/arm-compute": "^16.4.0",
-    "@azure/arm-network": "^25.2.0",
-    "@azure/arm-resources": "^4.2.2",
-    "@azure/arm-storage": "^16.1.2",
-    "@azure/identity": "^1.5.2"
+    "@azure/arm-compute": "^17.3.0",
+    "@azure/arm-network": "^26.0.0",
+    "@azure/arm-resources": "^5.0.0",
+    "@azure/arm-storage": "^17.1.0",
+    "@azure/identity": "^2.0.1"
   }
 }

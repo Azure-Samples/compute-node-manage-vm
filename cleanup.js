@@ -19,7 +19,7 @@ if (!resourceGroupName) {
 
 const deleteResourceGroup = async () => {
   console.log("\nDeleting resource group: " + resourceGroupName);
-  return await resourceClient.resourceGroups.deleteMethod(resourceGroupName);
+  return await resourceClient.resourceGroups.beginDeleteAndWait(resourceGroupName);
 };
 
 const credentials = new DefaultAzureCredential();
