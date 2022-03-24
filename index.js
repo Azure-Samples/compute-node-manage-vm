@@ -113,7 +113,7 @@ const createStorageAccount = async () => {
       tag2: "val2",
     },
   };
-  return await storageClient.storageAccounts.create(
+  return await storageClient.storageAccounts.beginCreateAndWait(
     resourceGroupName,
     storageAccountName,
     createParameters
@@ -131,7 +131,7 @@ const createVnet = async() =>{
     subnets: [{ name: subnetName, addressPrefix: '10.0.0.0/24' }],
   };
   console.log('\n3.Creating vnet: ' + vnetName);
-  return await networkClient.virtualNetworks.createOrUpdate(resourceGroupName, vnetName, vnetParameters);
+  return await networkClient.virtualNetworks.beginCreateOrUpdateAndWait(resourceGroupName, vnetName, vnetParameters);
 }
 
 const getSubnetInfo = async () => {
@@ -147,7 +147,7 @@ const createPublicIP = async () => {
     }
   };
   console.log('\n4.Creating public IP: ' + publicIPName);
-  return await networkClient.publicIPAddresses.createOrUpdate(resourceGroupName, publicIPName, publicIPParameters);
+  return await networkClient.publicIPAddresses.beginCreateOrUpdateAndWait(resourceGroupName, publicIPName, publicIPParameters);
 }
 
 const createNIC = async (subnetInfo, publicIPInfo)=> {
@@ -163,7 +163,7 @@ const createNIC = async (subnetInfo, publicIPInfo)=> {
     ]
   };
   console.log('\n5.Creating Network Interface: ' + networkInterfaceName);
-  return await networkClient.networkInterfaces.createOrUpdate(resourceGroupName, networkInterfaceName, nicParameters);
+  return await networkClient.networkInterfaces.beginCreateOrUpdateAndWait(resourceGroupName, networkInterfaceName, nicParameters);
 }
 const findVMImage = async () => {
   console.log(util.format('\nFinding a VM Image for location %s from ' + 
@@ -210,7 +210,7 @@ const createVirtualMachine = async(nicId, vmImageVersionNumber)=> {
   };
   console.log('6.Creating Virtual Machine: ' + vmName);
   console.log(' VM create parameters: ' + util.inspect(vmParameters, { depth: null }));
-  await computeClient.virtualMachines.createOrUpdate(resourceGroupName, vmName, vmParameters);
+  await computeClient.virtualMachines.beginCreateOrUpdateAndWait(resourceGroupName, vmName, vmParameters);
 }
 const manageResources = async ()=>{  
   
@@ -242,7 +242,11 @@ const startVirtualMachines = async() => {
 };
 const listVirtualMachines = async() => {
   console.log(`Lists VMs`)   
-  return await computeClient.virtualMachines.listAll();
+  const result = new Array();
+  for await (const item of computeClient.virtualMachines.listAll()){
+    result.push(item);
+  }
+  return result;
 };
 
 function _generateRandomId(prefix, existIds) {
